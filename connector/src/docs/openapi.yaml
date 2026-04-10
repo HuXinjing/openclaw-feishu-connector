@@ -1,0 +1,154 @@
+openapi: 3.0.0
+info:
+  title: PlanC Feishu Connector API
+  version: 1.0.0
+  description: Enterprise-grade Feishu multi-user AI agent connector for OpenClaw
+
+servers:
+  - url: https://your-connector.example.com
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /health:
+    get:
+      summary: Simple liveness check
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /healthz:
+    get:
+      summary: Detailed health probe
+      security: []
+      responses:
+        '200':
+          description: All systems healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  docker: { type: boolean }
+                  db: { type: boolean }
+                  timestamp: { type: integer }
+        '503':
+          description: Service unavailable
+
+  /healthz/ready:
+    get:
+      summary: Readiness probe (checks for active users)
+      security: []
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  activeUsers: { type: integer }
+        '503':
+          description: Not ready
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      security: []
+      responses:
+        '200':
+          description: Prometheus text format
+
+  /api/admin/login:
+    post:
+      summary: Admin login (returns JWT)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: JWT token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  expiresIn: { type: string }
+        '401':
+          description: Invalid credentials
+
+  /api/admin/users:
+    get:
+      summary: List all users
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of user records
+    post:
+      summary: Register new user
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [feishuOpenId]
+              properties:
+                feishuOpenId: { type: string, maxLength: 64 }
+                userName: { type: string, maxLength: 128 }
+                auto_start: { type: boolean }
+      responses:
+        '201':
+          description: User created
+        '409':
+          description: User already exists
+
+  /api/admin/containers:
+    get:
+      summary: List all OpenClaw containers
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of container records
+
+  /api/admin/dlq:
+    get:
+      summary: List pending DLQ entries
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: DLQ entries with stats
+
+  /api/admin/dlq/{id}/resolve:
+    post:
+      summary: Mark DLQ entry as resolved
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Resolved

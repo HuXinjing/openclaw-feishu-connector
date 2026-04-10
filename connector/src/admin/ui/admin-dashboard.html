@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw 管理后台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --sidebar-hover: rgba(255,255,255,0.06);
+      --sidebar-active-bg: rgba(99,102,241,0.18);
+      --sidebar-active-text: #818cf8;
+      --sidebar-accent: #6366f1;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: #eef2ff;
+      --accent: #22d3ee;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 200px;
+      background: radial-gradient(ellipse at 30% 0%, rgba(99,102,241,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+    }
+
+    .logo-mark svg { width: 18px; height: 18px; }
+
+    .logo-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: #ffffff;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--sidebar-text);
+      opacity: 0.5;
+      padding: 8px 8px 4px;
+      margin-top: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--sidebar-text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+      color: #e2e8f0;
+    }
+
+    .nav-item.active {
+      background: var(--sidebar-active-bg);
+      color: var(--sidebar-active-text);
+    }
+
+    .nav-item svg {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-item .nav-badge {
+      margin-left: auto;
+      background: var(--primary);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .sidebar-footer-info {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      opacity: 0.4;
+      text-align: center;
+    }
+
+    /* ── Main content ── */
+    .main {
+      flex: 1;
+      margin-left: 240px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .content {
+      padding: 32px;
+      max-width: 1200px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title svg { width: 18px; height: 18px; color: var(--primary); }
+
+    .card-body { padding: 0; }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stat-icon svg { width: 22px; height: 22px; }
+    .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+    .stat-icon.green { background: var(--success-light); color: var(--success); }
+    .stat-icon.amber { background: var(--warning-light); color: var(--warning); }
+    .stat-icon.red { background: var(--danger-light); color: var(--danger); }
+
+    .stat-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 12px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: #fafbfc; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-avatar img {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-name { font-weight: 500; color: var(--text-primary); font-size: 14px; }
+    .user-id { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-success { background: var(--success-light); color: var(--success); }
+    .badge-warning { background: var(--warning-light); color: var(--warning); }
+    .badge-danger { background: var(--danger-light); color: var(--danger); }
+    .badge-neutral { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn svg { width: 15px; height: 15px; }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text-primary); }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #059669; transform: translateY(-1px); }
+
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .btn-warning { background: #d97706; color: white; }
+    .btn-warning:hover { background: #b45309; }
+
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn svg { width: 14px; height: 14px; }
+
+    /* Toast */
+    .toast {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: toastIn 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast-success { background: #065f46; color: #6ee7b7; border: 1px solid #047857; }
+    .toast-error { background: #450a0a; color: #fca5a5; border: 1px solid #991b1b; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(20px); }
+    }
+
+    /* Container detail meta */
+    #containerDetailMeta span { display:flex;gap:4px;align-items:center; }
+    #containerDetailMeta .meta-label { color: var(--text-muted); }
+    #containerDetailMeta .meta-value { font-family: monospace; font-size: 12px; }
+
+    .btn-group { display: flex; gap: 8px; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 4px; border-bottom: 1.5px solid var(--border); margin-bottom: 16px; }
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+      transition: all 0.15s;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+    .tab:hover { color: var(--text-primary); background: var(--surface-2); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Forms / Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      width: 480px;
+      max-width: 100%;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text-primary); }
+
+    .modal-body { padding: 24px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text-primary);
+      background: var(--surface);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      width: 56px; height: 56px;
+      background: var(--surface-2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      border: 2px dashed var(--border);
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; color: var(--text-muted); }
+    .empty-title { font-weight: 600; font-size: 15px; color: var(--text-secondary); margin-bottom: 6px; }
+    .empty-desc { font-size: 13px; }
+
+    /* ── Loading ── */
+    .loading-row td { text-align: center; color: var(--text-muted); font-style: italic; padding: 40px; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Login ── */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--sidebar-bg);
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .login-logo .logo-mark {
+      width: 40px; height: 40px;
+      border-radius: 11px;
+    }
+
+    .login-logo .logo-mark svg { width: 22px; height: 22px; }
+    .login-logo .logo-text { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); }
+    .login-logo .logo-sub { display: none; }
+
+    .login-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .login-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+
+    .login-error {
+      background: var(--danger-light);
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      border: 1px solid #fecaca;
+    }
+
+    .login-error.show { display: block; }
+
+    /* ── Misc ── */
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+    .text-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+    .text-sm { font-size: 12px; }
+    .text-muted { color: var(--text-muted); }
+    .mt-4 { margin-top: 4px; }
+
+    /* ── Network ACL styles ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-tile {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 16px;
+    }
+    .stat-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .stat-icon svg { width: 22px; height: 22px; }
+    .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+    .stat-icon.green { background: var(--success-light); color: var(--success); }
+    .stat-icon.red { background: var(--danger-light); color: var(--danger); }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; overflow: hidden; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-name { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+    .user-dept { font-size: 12px; color: var(--text-muted); }
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .ip-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .ip-tag { display: inline-flex; align-items: center; padding: 2px 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; font-family: monospace; color: var(--text-secondary); position: relative; }
+    .ip-tag:hover .ip-tooltip { display: block; }
+    .ip-tooltip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--text-primary); color: white; padding: 5px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap; z-index: 20; box-shadow: var(--shadow); }
+    .ip-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--text-primary); }
+    .ip-all { display: inline-flex; align-items: center; padding: 2px 8px; background: var(--primary-light); border: 1px solid rgba(99,102,241,0.2); border-radius: 4px; font-size: 11px; color: var(--primary); font-weight: 600; }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-outline:hover { background: var(--primary-light); }
+    .btn.loading { opacity: 0.7; pointer-events: none; }
+    .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+    .spinner-dark { border-color: rgba(99,102,241,0.3); border-top-color: var(--primary); }
+    .result-box { padding: 14px 18px; border-radius: var(--radius-sm); font-size: 14px; display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; }
+    .result-box svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+    .result-success { background: var(--success-light); color: #15803d; border: 1px solid #86efac; }
+    .result-error { background: var(--danger-light); color: #b91c1c; border: 1px solid #fca5a5; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 4px 0 20px; }
+    .toggle-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+    .toggle-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle input:checked + .toggle-slider { background: var(--success); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .form-textarea { width: 100%; min-height: 120px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', monospace; color: var(--text-primary); background: var(--surface); transition: border-color 0.15s; outline: none; resize: vertical; }
+    .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .setting-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info { flex: 1; min-width: 0; }
+    .setting-label { font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 4px; }
+    .setting-label-zh { font-weight: 400; color: var(--text-secondary); margin-left: 6px; }
+    .setting-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .setting-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .setting-unit { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .sidebar { transform: translateX(-100%); transition: transform 0.2s; }
+      .main { margin-left: 0; }
+      .content { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginPage" class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">OpenClaw</div>
+        <div class="logo-sub">Connector</div>
+      </div>
+    </div>
+    <div class="login-title">管理员登录</div>
+    <div class="login-subtitle">请输入凭证访问管理后台</div>
+    <div id="loginError" class="login-error"></div>
+    <div class="form-group">
+      <label class="form-label">用户名</label>
+      <input type="text" id="loginUsername" class="form-input" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;" onclick="doLogin()">
+      登录
+    </button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="appPage" style="display:none;" class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">OpenClaw</div>
+        <div class="logo-sub">Connector</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">概览</div>
+
+      <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        控制台
+      </a>
+
+      <div class="nav-section-label">用户与容器</div>
+
+      <a class="nav-item" data-page="users" onclick="showPage('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        用户管理
+        <span class="nav-badge" id="userCountBadge"></span>
+      </a>
+
+      <a class="nav-item" data-page="containers" onclick="showPage('containers')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8"/>
+          <path d="M12 17v4"/>
+        </svg>
+        容器管理
+      </a>
+
+      <div class="nav-section-label">网络</div>
+
+      <a class="nav-item" onclick="showPage('network')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        网络 ACL
+      </a>
+
+      <div class="nav-section-label">高级</div>
+
+      <a class="nav-item" data-page="dlq" onclick="showPage('dlq')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        死信队列
+        <span class="nav-badge" id="dlqCountBadge" style="display:none;"></span>
+      </a>
+
+      <a class="nav-item" data-page="moderation" onclick="showPage('moderation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        内容审核
+      </a>
+
+      <a class="nav-item" data-page="import" onclick="showPage('import')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        CSV 导入
+      </a>
+
+      <div class="nav-section-label">系统</div>
+
+      <a class="nav-item" data-page="settings" onclick="showPage('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
+        </svg>
+        系统设置
+      </a>
+
+      <a class="nav-item" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        退出登录
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-info">OpenClaw Connector v1.0</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">控制台</div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="refreshAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          刷新
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Dashboard -->
+      <!-- 控制台 -->
+      <div id="page-dashboard" class="page-section">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="statUsers">–</div>
+              <div class="stat-label">用户总数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="statActive">–</div>
+              <div class="stat-label">活跃用户</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8"/><path d="M12 17v4"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="statContainers">–</div>
+              <div class="stat-label">运行中容器</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-value" id="statNetwork">–</div>
+              <div class="stat-label">网络配置</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户管理 -->
+      <div id="page-users" class="page-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              用户管理
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openAddUser()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              添加用户
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>用户</th>
+                    <th>状态</th>
+                    <th>Gateway URL</th>
+                    <th>创建时间</th>
+                    <th>最后活跃</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="userTable">
+                  <tr class="loading-row"><td colspan="6">加载中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 容器管理 -->
+      <div id="page-containers" class="page-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8"/><path d="M12 17v4"/>
+              </svg>
+              容器管理
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>容器 ID</th>
+                    <th>名称</th>
+                    <th>状态</th>
+                    <th>端口</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="containerTable">
+                  <tr class="loading-row"><td colspan="6">加载中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 死信队列 -->
+      <div id="page-dlq" class="page-section" style="display:none;">
+        <div class="stats-grid" id="dlqStatsGrid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-icon amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="dlqTotal">–</div>
+              <div class="stat-label">总消息数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="dlqOldest">–</div>
+              <div class="stat-label">最早时间</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="dlqRetryCount">–</div>
+              <div class="stat-label">重试次数</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">死信队列条目</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadDLQ()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+              刷新
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Open ID</th>
+                    <th>消息摘要</th>
+                    <th>错误信息</th>
+                    <th>进入时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="dlqTable">
+                  <tr class="loading-row"><td colspan="6">加载中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 内容审核 -->
+      <div id="page-moderation" class="page-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">审核规则</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddRule()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              添加规则
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>规则 ID</th>
+                    <th>严重性</th>
+                    <th>模式</th>
+                    <th>动作</th>
+                    <th>描述</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="moderationTable">
+                  <tr class="loading-row"><td colspan="6">加载中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV 导入 -->
+      <div id="page-import" class="page-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">批量导入用户</div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">粘贴 CSV 数据</label>
+              <textarea id="importCsv" class="form-input" rows="12" style="font-family:monospace;font-size:12px;resize:vertical;" placeholder="open_id,user_name,quota_max_containers
+ou_xxxxxxxxxxxxxxxx,张三,2
+ou_yyyyyyyyyyyyyyyy,李四,1"></textarea>
+              <div class="form-hint">CSV 格式：open_id（必填）, user_name（可选）, quota_max_containers（可选）</div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+              <button class="btn btn-primary" onclick="submitCSVImport()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                导入
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadCSVTemplate()">
+                下载模板
+              </button>
+            </div>
+            <div id="importResult" style="display:none;" class="card" style="border:1px solid var(--border);border-radius:var(--radius-sm);">
+              <div class="card-body" style="padding:16px;">
+                <div id="importResultContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 系统设置 -->
+      <div id="page-settings" class="page-section" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+              运行时配置
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-ghost btn-sm" onclick="loadSystemConfig()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                重置
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="saveSystemConfig()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                保存全部
+              </button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:24px;">
+            <div id="settingsForm" style="display:grid;gap:0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 网络 ACL -->
+      <div id="page-network" class="page-section" style="display:none;">
+        <div class="stats-row" id="networkStatsRow">
+          <div class="stat-tile">
+            <div class="stat-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="aclStatTotal">–</div>
+              <div class="stat-label">总用户</div>
+            </div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="aclStatExternal">–</div>
+              <div class="stat-label">允许外网</div>
+            </div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-icon red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <div>
+              <div class="stat-value" id="aclStatInternal">–</div>
+              <div class="stat-label">禁止外网</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              用户列表
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary btn-sm" id="aclSyncBtn" onclick="syncNetwork()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                全量同步
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="downloadNetworkTemplate()">下载模板</button>
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('networkImportFile').click()">导入 CSV</button>
+              <input type="file" id="networkImportFile" accept=".csv" style="display:none" onchange="handleNetworkImport(event)">
+              <button class="btn btn-ghost btn-sm" onclick="exportNetworkCsv()">导出</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>用户</th>
+                  <th>允许 IP</th>
+                  <th>外网访问</th>
+                  <th>最后修改</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="aclTable">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-muted);font-style:italic;padding:40px;">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<!-- Network Edit Modal -->
+<div class="modal-overlay" id="networkEditModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">编辑网络规则</div>
+      <button class="modal-close" onclick="closeNetworkEdit()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="networkEditUserInfo" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border);"></div>
+      <div class="form-group">
+        <label class="form-label">允许访问的 IP / CIDR</label>
+        <textarea id="networkEditIps" class="form-textarea" placeholder="10.0.1.0/24&#10;10.0.3.50&#10;0.0.0.0/0 = 允许所有内网"></textarea>
+        <div class="form-hint">每行一个 IP 地址或 CIDR，支持 0.0.0.0/0 表示允许所有内网</div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">允许访问外网</div>
+          <div class="toggle-sub">关闭后用户容器只能访问内网 IP 和 DNS</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="networkEditExternal">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNetworkEdit()">取消</button>
+      <button class="btn btn-primary" id="networkSaveBtn" onclick="saveNetworkAcl()">保存规则</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<!-- Container Details Modal -->
+<div class="modal-overlay" id="containerDetailModal">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-header">
+      <div class="modal-title" id="containerDetailTitle">容器详情</div>
+      <button class="modal-close" onclick="closeContainerDetail()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="containerDetailMeta" style="display:flex;gap:16px;margin-bottom:16px;font-size:13px;color:var(--text-muted);flex-wrap:wrap;"></div>
+      <div class="tabs" id="containerDetailTabs">
+        <div class="tab active" onclick="switchContainerTab('logs')" data-tab="logs">日志</div>
+        <div class="tab" onclick="switchContainerTab('config')" data-tab="config">配置</div>
+      </div>
+      <div id="containerTabLogs" class="tab-content active">
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+          <select id="logLines" class="form-input" style="width:auto;padding:4px 8px;font-size:12px;">
+            <option value="50">50 行</option>
+            <option value="100" selected>100 行</option>
+            <option value="200">200 行</option>
+            <option value="500">500 行</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadContainerLogs()" id="logsRefreshBtn">刷新</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadContainerLogs()">下载</button>
+        </div>
+        <textarea id="containerLogsArea" readonly style="width:100%;height:400px;background:#0f172a;color:#94a3b8;font-family:monospace;font-size:12px;padding:12px;border-radius:8px;border:1px solid #1e293b;resize:vertical;line-height:1.5;" placeholder="加载中..."></textarea>
+      </div>
+      <div id="containerTabConfig" class="tab-content">
+        <div id="containerConfigJson" style="background:#0f172a;color:#94a3b8;font-family:monospace;font-size:12px;padding:12px;border-radius:8px;border:1px solid #1e293b;max-height:450px;overflow:auto;white-space:pre-wrap;line-height:1.5;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add Rule Modal -->
+<div class="modal-overlay" id="addRuleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">添加审核规则</div>
+      <button class="modal-close" onclick="closeAddRule()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">规则 ID</label>
+        <input type="text" id="ruleId" class="form-input" placeholder="rule_block_ip_1" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">规则类型</label>
+        <select id="ruleType" class="form-input">
+          <option value="keyword">关键词</option>
+          <option value="regex">正则表达式</option>
+          <option value="domain">域名</option>
+          <option value="ip_range">IP 范围</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">匹配模式</label>
+        <input type="text" id="rulePattern" class="form-input" placeholder="禁止访问的关键词或模式">
+      </div>
+      <div class="form-group">
+        <label class="form-label">执行动作</label>
+        <select id="ruleAction" class="form-input">
+          <option value="block">阻止</option>
+          <option value="warn">警告</option>
+          <option value="audit">仅记录</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">描述（可选）</label>
+        <input type="text" id="ruleDescription" class="form-input" placeholder="规则用途说明">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddRule()">取消</button>
+      <button class="btn btn-primary" onclick="addModerationRule()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">添加用户</div>
+      <button class="modal-close" onclick="closeAddUser()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Open ID</label>
+        <input type="text" id="addUserOpenId" class="form-input" placeholder="ou_xxxxxxxxxxxxxxxx">
+        <div class="form-hint">飞书用户的 open_id</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">用户名（可选）</label>
+        <input type="text" id="addUserName" class="form-input" placeholder="显示名称">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddUser()">取消</button>
+      <button class="btn btn-primary" onclick="createUser()">创建</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────
+function authHeaders() {
+  const token = localStorage.getItem('admin_token');
+  return token
+    ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
+}
+
+function checkAuth() {
+  const token = localStorage.getItem('admin_token');
+  if (token) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appPage').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('appPage').style.display = 'none';
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || '登录失败');
+    localStorage.setItem('admin_token', data.token);
+    errEl.classList.remove('show');
+    checkAuth();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+  }
+}
+
+function logout() {
+  localStorage.removeItem('admin_token');
+  location.reload();
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const active = document.querySelector(`.nav-item[data-page="${page}"]`);
+  if (active) active.classList.add('active');
+
+  const titles = { dashboard: '控制台', users: '用户管理', containers: '容器管理', network: '网络 ACL', dlq: '死信队列', moderation: '内容审核', import: 'CSV 导入', settings: '系统设置' };
+  document.getElementById('pageTitle').textContent = titles[page] || '控制台';
+
+  document.querySelectorAll('.page-section').forEach(p => p.style.display = 'none');
+  const el = document.getElementById(`page-${page}`);
+  if (el) el.style.display = 'block';
+
+  // Reload data for the active page
+  if (page === 'dashboard') {
+    loadStats();
+  } else if (page === 'users') {
+    loadUsers();
+  } else if (page === 'containers') {
+    loadContainers();
+  } else if (page === 'network') {
+    loadNetworkACL();
+  } else if (page === 'dlq') {
+    loadDLQ();
+  } else if (page === 'moderation') {
+    loadModeration();
+  } else if (page === 'settings') {
+    loadSystemConfig();
+  }
+}
+
+// ── Load ─────────────────────────────────────────────────────────────────
+async function loadAll() {
+  loadUsers();
+  loadContainers();
+  loadStats();
+  // Load DLQ badge count silently
+  try {
+    const res = await fetch('/api/admin/dlq', { headers: authHeaders() });
+    const data = await res.json();
+    const pending = data.stats?.pending ?? 0;
+    const badge = document.getElementById('dlqCountBadge');
+    if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  } catch {}
+}
+
+function refreshAll() { loadAll(); }
+
+async function loadStats() {
+  const token = localStorage.getItem('admin_token');
+  try {
+    const [usersRes, containersRes, profilesRes] = await Promise.all([
+      fetch('/api/admin/users', { headers: authHeaders() }),
+      fetch('/api/admin/containers', { headers: authHeaders() }),
+      token
+        ? fetch('/api/admin/network/profiles', { headers: authHeaders() })
+        : Promise.resolve(null),
+    ]);
+
+    const users = usersRes.ok ? (await usersRes.json()) : [];
+    const containers = containersRes.ok ? (await containersRes.json()) : [];
+    const profiles = profilesRes && profilesRes.ok ? (await profilesRes.json()) : [];
+
+    const active = Array.isArray(users) ? users.filter(u => u.status?.phase === 'active').length : 0;
+    const total = Array.isArray(users) ? users.length : 0;
+    const running = Array.isArray(containers) ? containers.length : 0;
+    const networkCount = Array.isArray(profiles) ? profiles.length : 0;
+
+    document.getElementById('statUsers').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statContainers').textContent = running;
+    document.getElementById('statNetwork').textContent = networkCount;
+
+    const badge = document.getElementById('userCountBadge');
+    if (total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+  } catch(e) { console.error(e); }
+}
+
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/admin/users', { headers: authHeaders() });
+    const users = await res.json();
+    const tbody = document.getElementById('userTable');
+    if (!Array.isArray(users) || users.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-title">暂无用户</div><div class="empty-desc">点击右上角「添加用户」创建第一个用户</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = users.map(u => {
+      const phase = u.status?.phase || 'pending';
+      const statusMap = {
+        active: { cls: 'badge-success', label: '活跃' },
+        stopped: { cls: 'badge-danger', label: '已停止' },
+        pending: { cls: 'badge-warning', label: '待创建' },
+        pooled: { cls: 'badge-neutral', label: '空闲' },
+        error: { cls: 'badge-danger', label: '错误' },
+        creating: { cls: 'badge-warning', label: '创建中' },
+        failed: { cls: 'badge-danger', label: '失败' },
+      };
+      const s = statusMap[phase] || statusMap.pending;
+      const openId = u.spec?.feishuOpenId || '';
+      const userName = u.spec?.userName || '';
+      const avatarUrl = u.spec?.avatarUrl || '';
+      const initials = (userName || openId || 'U').slice(0, 2).toUpperCase();
+      const avatarHtml = avatarUrl
+        ? `<img src="${escHtml(avatarUrl)}" class="user-avatar" alt="${escHtml(userName)}" style="border-radius:50%;object-fit:cover;">`
+        : `<div class="user-avatar">${initials}</div>`;
+      return `<tr>
+        <td>
+          <div class="user-cell">
+            ${avatarHtml}
+            <div>
+              <div class="user-name">${escHtml(userName || '—')}</div>
+              <div class="user-id">${escHtml(openId)}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="badge ${s.cls}"><span class="dot"></span>${s.label}</span></td>
+        <td>${u.status?.gatewayUrl ? `<span class="text-mono text-sm">${escHtml(u.status.gatewayUrl)}</span>` : '—'}</td>
+        <td>${u.createdAt ? fmtDate(Math.floor(u.createdAt / 1000)) : '—'}</td>
+        <td>${u.lastActive ? fmtDate(Math.floor(u.lastActive / 1000)) : '—'}</td>
+        <td>
+          <div class="btn-group">
+            ${phase === 'pending' || phase === 'creating' ? `<button class="btn btn-primary btn-sm" onclick="createContainer('${escAttr(openId)}')">创建容器</button>` : ''}
+            ${(phase === 'active' || phase === 'stopped' || phase === 'pooled') && u.status?.containerId ? `<button class="btn btn-ghost btn-sm" onclick="startUser('${escAttr(openId)}')">启动</button>` : ''}
+            ${phase === 'active' && u.status?.containerId ? `<button class="btn btn-ghost btn-sm" onclick="stopUser('${escAttr(openId)}')">停止</button>` : ''}
+            ${(phase === 'active' || phase === 'pooled' || phase === 'stopped' || phase === 'error') && u.status?.containerId ? `<button class="btn btn-ghost btn-sm" onclick="restartUser('${escAttr(openId)}')">重启</button>` : ''}
+            ${(phase === 'error' || phase === 'failed') && u.status?.containerId ? `<button class="btn btn-warning btn-sm" onclick="rebuildContainer('${escAttr(openId)}')">重建</button>` : ''}
+            ${u.status?.containerId ? `<button class="btn btn-ghost btn-sm" onclick="openContainerDetail('${escAttr(u.status.containerId)}')">详情</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="deleteUser('${escAttr(openId)}')">删除</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('userTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:30px;">加载失败: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function loadContainers() {
+  try {
+    const res = await fetch('/api/admin/containers', { headers: authHeaders() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const containers = await res.json();
+    const tbody = document.getElementById('containerTable');
+    if (!Array.isArray(containers) || containers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></div><div class="empty-title">暂无容器</div><div class="empty-desc">用户发起对话后自动创建容器</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = containers.map(c => `<tr>
+      <td><span class="text-mono" style="font-size:11px;">${escHtml(c.id)}</span></td>
+      <td><span class="text-mono" style="font-size:12px;">${escHtml(c.name)}</span></td>
+      <td><span class="badge badge-success"><span class="dot"></span>${escHtml(c.status)}</span></td>
+      <td>${(c.ports || []).join(', ') || '—'}</td>
+      <td>${c.created ? fmtDate(c.created) : '—'}</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="openContainerDetail('${escAttr(c.name)}')">详情</button>
+          <button class="btn btn-ghost btn-sm" onclick="restartContainer('${escAttr(c.name)}')">重启</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  } catch(e) {
+    document.getElementById('containerTable').innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:30px;">加载失败: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── User actions ──────────────────────────────────────────────────────────
+function openAddUser() {
+  document.getElementById('addUserModal').classList.add('active');
+  document.getElementById('addUserOpenId').value = '';
+  document.getElementById('addUserName').value = '';
+  document.getElementById('addUserOpenId').focus();
+}
+
+function closeAddUser() {
+  document.getElementById('addUserModal').classList.remove('active');
+}
+
+// ── Toast notification ───────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<span>${type === 'success' ? '✓' : '✗'}</span> ${escHtml(msg)}`;
+  container.appendChild(toast);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.style.animation = 'toastOut 0.2s ease forwards';
+    setTimeout(() => toast.remove(), 200);
+  }, 4000);
+}
+
+// ── User actions ──────────────────────────────────────────────────────────
+async function apiAction(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: authHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+  return data;
+}
+
+async function createUser() {
+  const feishuOpenId = document.getElementById('addUserOpenId').value.trim();
+  const userName = document.getElementById('addUserName').value.trim();
+  if (!feishuOpenId) return;
+  try {
+    await apiAction('POST', '/api/admin/users', { feishuOpenId, userName });
+    closeAddUser();
+    loadAll();
+    showToast('用户创建成功');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function createContainer(openId) {
+  try {
+    const btn = event?.target;
+    if (btn) { btn.disabled = true; btn.textContent = '创建中...'; }
+    await apiAction('POST', `/api/admin/users/${openId}/create-container`);
+    loadAll();
+    showToast('容器创建并启动成功');
+  } catch (e) {
+    showToast('创建失败: ' + e.message, 'error');
+  } finally {
+    document.querySelectorAll('button').forEach(b => b.disabled = false);
+  }
+}
+
+async function startUser(openId) {
+  try {
+    await apiAction('POST', `/api/admin/users/${openId}/start`);
+    loadAll();
+    showToast('容器启动成功');
+  } catch (e) {
+    showToast('启动失败: ' + e.message, 'error');
+  }
+}
+
+async function stopUser(openId) {
+  try {
+    await apiAction('POST', `/api/admin/users/${openId}/stop`);
+    loadAll();
+    showToast('容器已停止');
+  } catch (e) {
+    showToast('停止失败: ' + e.message, 'error');
+  }
+}
+
+async function restartUser(openId) {
+  try {
+    await apiAction('POST', `/api/admin/users/${openId}/restart`);
+    loadAll();
+    showToast('容器重启成功');
+  } catch (e) {
+    showToast('重启失败: ' + e.message, 'error');
+  }
+}
+
+async function rebuildContainer(openId) {
+  if (!confirm('重建将删除旧容器并创建新容器，确定继续？')) return;
+  try {
+    // Stop then remove the old container
+    await apiAction('POST', `/api/admin/users/${openId}/stop`);
+    await new Promise(r => setTimeout(r, 1000));
+    // Delete the user (which also removes the container record)
+    await apiAction('DELETE', `/api/admin/users/${openId}`);
+    // Create a new user record and container
+    await apiAction('POST', '/api/admin/users', { feishuOpenId: openId });
+    await apiAction('POST', `/api/admin/users/${openId}/create-container`);
+    loadAll();
+    showToast('容器重建成功');
+  } catch (e) {
+    showToast('重建失败: ' + e.message, 'error');
+    loadAll();
+  }
+}
+
+async function deleteUser(openId) {
+  if (!confirm('确定要删除该用户吗？此操作不可恢复。')) return;
+  try {
+    await apiAction('DELETE', `/api/admin/users/${openId}`);
+    loadAll();
+    showToast('用户已删除');
+  } catch (e) {
+    showToast('删除失败: ' + e.message, 'error');
+  }
+}
+
+// ── Container actions ─────────────────────────────────────────────────────
+async function restartContainer(name) {
+  try {
+    await apiAction('POST', `/api/admin/containers/${encodeURIComponent(name)}/restart`);
+    loadContainers();
+    showToast('容器重启成功');
+  } catch (e) {
+    showToast('重启失败: ' + e.message, 'error');
+  }
+}
+
+// ── Container detail modal ────────────────────────────────────────────────
+let currentContainerName = '';
+
+function openContainerDetail(name) {
+  currentContainerName = name;
+  document.getElementById('containerDetailTitle').textContent = '容器详情: ' + name;
+  document.getElementById('containerDetailMeta').innerHTML = `
+    <span><span class="meta-label">名称:</span><span class="meta-value">${escHtml(name)}</span></span>
+  `;
+  switchContainerTab('logs');
+  loadContainerLogs();
+  document.getElementById('containerDetailModal').classList.add('active');
+}
+
+function closeContainerDetail() {
+  document.getElementById('containerDetailModal').classList.remove('active');
+  currentContainerName = '';
+}
+
+function switchContainerTab(tab) {
+  document.querySelectorAll('#containerDetailTabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('containerTabLogs').classList.toggle('active', tab === 'logs');
+  document.getElementById('containerTabConfig').classList.toggle('active', tab === 'config');
+  if (tab === 'logs' && document.getElementById('containerLogsArea').value === '加载中...') {
+    loadContainerLogs();
+  }
+  if (tab === 'config' && document.getElementById('containerConfigJson').textContent === '') {
+    loadContainerConfig();
+  }
+}
+
+async function loadContainerLogs() {
+  const lines = document.getElementById('logLines').value;
+  const btn = document.getElementById('logsRefreshBtn');
+  const area = document.getElementById('containerLogsArea');
+  area.value = '加载中...';
+  if (btn) { btn.disabled = true; btn.textContent = '加载中...'; }
+  try {
+    const res = await fetch(`/api/admin/container-logs/${encodeURIComponent(currentContainerName)}?lines=${lines}`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    area.value = data.logs || '(无日志)';
+    area.scrollTop = area.scrollHeight;
+  } catch (e) {
+    area.value = '加载失败: ' + e.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '刷新'; }
+  }
+}
+
+function downloadContainerLogs() {
+  const area = document.getElementById('containerLogsArea');
+  const blob = new Blob([area.value], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `container-${currentContainerName}-logs-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function loadContainerConfig() {
+  const el = document.getElementById('containerConfigJson');
+  el.textContent = '加载中...';
+  try {
+    const res = await fetch(`/api/admin/container-config/${encodeURIComponent(currentContainerName)}`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    el.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    el.textContent = '加载失败: ' + e.message;
+  }
+}
+
+// ── DLQ ─────────────────────────────────────────────────────────────────
+async function loadDLQ() {
+  const tbody = document.getElementById('dlqTable');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
+  try {
+    const res = await fetch('/api/admin/dlq', { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const { entries = [], stats = {} } = data;
+
+    // Update stats
+    document.getElementById('dlqTotal').textContent = (stats.total ?? 0).toString();
+    document.getElementById('dlqOldest').textContent = entries.length > 0 ? fmtDate(Math.floor(entries[0].createdAt / 1000)) : '—';
+    document.getElementById('dlqRetryCount').textContent = (stats.pending ?? 0).toString();
+
+    // Update badge
+    const badge = document.getElementById('dlqCountBadge');
+    if (stats.pending > 0) { badge.textContent = stats.pending; badge.style.display = 'inline'; }
+    else { badge.style.display = 'none'; }
+
+    if (!Array.isArray(entries) || entries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="empty-title">队列为空</div><div class="empty-desc">没有待处理的消息</div></div></td></tr>`;
+      return;
+    }
+
+    const actionMap = { block: { cls: 'badge-danger', label: '阻止' }, warn: { cls: 'badge-warning', label: '警告' }, audit: { cls: 'badge-neutral', label: '记录' } };
+    tbody.innerHTML = entries.map(e => {
+      const msgSummary = (e.message || '').slice(0, 60) + ((e.message || '').length > 60 ? '…' : '');
+      const errSummary = (e.error || '').slice(0, 60) + ((e.error || '').length > 60 ? '…' : '');
+      return `<tr>
+        <td><span class="text-mono text-sm">${e.id}</span></td>
+        <td><span class="text-sm">${escHtml(e.openId)}</span></td>
+        <td><span class="text-sm" title="${escHtml(e.message)}">${escHtml(msgSummary)}</span></td>
+        <td><span class="text-sm text-muted" title="${escHtml(e.error)}">${escHtml(errSummary)}</span></td>
+        <td>${fmtDate(Math.floor(e.createdAt / 1000))}</td>
+        <td>
+          <div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="retryDLQ(${e.id})">重试</button>
+            <button class="btn btn-ghost btn-sm" onclick="resolveDLQ(${e.id})">标记已处理</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:30px;">加载失败: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function retryDLQ(id) {
+  try {
+    await apiAction('POST', `/api/admin/dlq/${id}/retry`);
+    showToast('已放入重试队列');
+    loadDLQ();
+  } catch (e) {
+    showToast('重试失败: ' + e.message, 'error');
+  }
+}
+
+async function resolveDLQ(id) {
+  try {
+    await apiAction('POST', `/api/admin/dlq/${id}/resolve`);
+    showToast('已标记为已处理');
+    loadDLQ();
+  } catch (e) {
+    showToast('操作失败: ' + e.message, 'error');
+  }
+}
+
+// ── Moderation ───────────────────────────────────────────────────────────
+async function loadModeration() {
+  const tbody = document.getElementById('moderationTable');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="6">加载中...</td></tr>`;
+  try {
+    const res = await fetch('/api/admin/moderation/rules', { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const rules = data.rules || [];
+    if (!Array.isArray(rules) || rules.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="empty-title">暂无规则</div><div class="empty-desc">点击右上角「添加规则」创建第一条审核规则</div></div></td></tr>`;
+      return;
+    }
+    const actionCls = { block: 'badge-danger', warn: 'badge-warning', audit: 'badge-neutral' };
+    const actionLabel = { block: '阻止', warn: '警告', audit: '记录' };
+    const severityCls = { high: 'badge-danger', medium: 'badge-warning', low: 'badge-neutral' };
+    tbody.innerHTML = rules.map(r => `<tr>
+      <td><span class="text-mono text-sm">${escHtml(r.id)}</span></td>
+      <td><span class="badge ${severityCls[r.severity] || 'badge-neutral'}">${escHtml(r.severity || '—')}</span></td>
+      <td><span class="text-mono text-sm" title="${escHtml(r.pattern)}" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;display:block;">${escHtml(r.pattern)}</span></td>
+      <td><span class="badge ${actionCls[r.action] || 'badge-neutral'}">${actionLabel[r.action] || escHtml(r.action)}</span></td>
+      <td><span class="text-sm text-muted">${escHtml(r.description || '—')}</span></td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-danger btn-sm" onclick="deleteModerationRule('${escAttr(r.id)}')">删除</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);text-align:center;padding:30px;">加载失败: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function openAddRule() {
+  document.getElementById('addRuleModal').classList.add('active');
+  document.getElementById('ruleId').value = '';
+  document.getElementById('rulePattern').value = '';
+  document.getElementById('ruleDescription').value = '';
+  document.getElementById('ruleId').focus();
+}
+
+function closeAddRule() {
+  document.getElementById('addRuleModal').classList.remove('active');
+}
+
+async function addModerationRule() {
+  const id = document.getElementById('ruleId').value.trim();
+  const pattern = document.getElementById('rulePattern').value.trim();
+  const description = document.getElementById('ruleDescription').value.trim();
+  const ruleAction = document.getElementById('ruleAction').value;
+  if (!id || !pattern) { showToast('规则 ID 和匹配模式不能为空', 'error'); return; }
+  try {
+    await apiAction('POST', '/api/admin/moderation/rules', {
+      rule: { id, pattern, action: ruleAction, severity: 'medium', description },
+    });
+    closeAddRule();
+    loadModeration();
+    showToast('规则添加成功');
+  } catch (e) {
+    showToast('添加失败: ' + e.message, 'error');
+  }
+}
+
+async function deleteModerationRule(ruleId) {
+  if (!confirm(`确定要删除规则「${ruleId}」吗？`)) return;
+  try {
+    const res = await fetch(`/api/admin/moderation/rules/${encodeURIComponent(ruleId)}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      throw new Error(d.error || `HTTP ${res.status}`);
+    }
+    loadModeration();
+    showToast('规则已删除');
+  } catch (e) {
+    showToast('删除失败: ' + e.message, 'error');
+  }
+}
+
+// ── CSV Import ───────────────────────────────────────────────────────────
+async function submitCSVImport() {
+  const csv = document.getElementById('importCsv').value.trim();
+  if (!csv) { showToast('请粘贴 CSV 数据', 'error'); return; }
+  const btn = event?.target;
+  if (btn) { btn.disabled = true; btn.textContent = '导入中...'; }
+  try {
+    const res = await fetch('/api/admin/users/import', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ csv }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const resultDiv = document.getElementById('importResult');
+    const contentDiv = document.getElementById('importResultContent');
+    resultDiv.style.display = 'block';
+    contentDiv.innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:12px;">
+      <div><span style="font-weight:600;color:var(--success);">✓ 创建 ${data.created}</span></div>
+      <div><span style="font-weight:600;color:var(--warning);">⏭ 跳过 ${data.skipped}</span></div>
+      <div><span style="font-weight:600;color:var(--danger);">✗ 错误 ${data.errors?.length || 0}</span></div>
+    </div>
+    ${(data.errors || []).length > 0 ? `<div style="font-size:12px;color:var(--danger);max-height:120px;overflow:auto;">${data.errors.map(e => `<div>• ${escHtml(e)}</div>`).join('')}</div>` : ''}`;
+    loadAll();
+    showToast(`导入完成：创建 ${data.created}，跳过 ${data.skipped}`);
+  } catch (e) {
+    showToast('导入失败: ' + e.message, 'error');
+  } finally {
+    document.querySelectorAll('button').forEach(b => b.disabled = false);
+  }
+}
+
+function downloadCSVTemplate() {
+  const template = 'open_id,user_name,quota_max_containers\nou_xxxxxxxxxxxxxxxx,张三,2\nou_yyyyyyyyyyyyyyyy,李四,1';
+  const blob = new Blob([template], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'users-import-template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Network ACL ──────────────────────────────────────────────────────────
+let currentAclProfiles = [];
+
+function authHeadersNoJson() {
+  const token = localStorage.getItem('admin_token');
+  return token ? { 'Authorization': 'Bearer ' + token } : {};
+}
+
+async function loadNetworkACL() {
+  try {
+    const res = await fetch('/api/admin/network/profiles', { headers: authHeaders() });
+    if (!res.ok) return;
+    const profiles = await res.json();
+    currentAclProfiles = profiles;
+    renderAclStats(profiles);
+    renderAclTable(profiles);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderAclStats(profiles) {
+  const total = profiles.length;
+  const external = profiles.filter(p => p.allow_external).length;
+  const internal = total - external;
+  const el = document.getElementById('aclStatTotal');
+  if (el) el.textContent = total;
+  const el2 = document.getElementById('aclStatExternal');
+  if (el2) el2.textContent = external;
+  const el3 = document.getElementById('aclStatInternal');
+  if (el3) el3.textContent = internal;
+}
+
+function renderAclTable(profiles) {
+  const tbody = document.getElementById('aclTable');
+  if (!profiles || profiles.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div class="empty-title">暂无网络配置</div><div class="empty-desc">点击右上角「全量同步」从飞书拉取用户</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = profiles.map(p => {
+    const ips = Array.isArray(p.allowed_ips) ? p.allowed_ips : [];
+    const ipHtml = ips.length === 0
+      ? `<span class="ip-tag" style="background:var(--danger-light);color:var(--danger);">无限制</span>`
+      : ips.map(ip => {
+          const label = ip === '0.0.0.0/0' ? '全部内网' : ip;
+          const cls = ip === '0.0.0.0/0' ? 'ip-all' : 'ip-tag';
+          return `<span class="${cls}">${escHtml(label)}</span>`;
+        }).join('');
+    const extBadge = p.allow_external
+      ? `<span class="badge badge-success"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>允许</span>`
+      : `<span class="badge badge-danger"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>禁止</span>`;
+    const initials = (p.user_name || p.open_id || 'U').slice(0, 2).toUpperCase();
+    const updated = p.updated_at
+      ? new Date(p.updated_at * 1000).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    return `<tr>
+      <td>
+        <div class="user-cell">
+          <div class="avatar">
+            ${p.avatar_url ? `<img src="${escHtml(p.avatar_url)}" alt="">` : escHtml(initials)}
+          </div>
+          <div>
+            <div class="user-name">${escHtml(p.user_name || '—')}</div>
+            <div class="user-dept">${escHtml(p.department_name || p.open_id || '')}</div>
+          </div>
+        </div>
+      </td>
+      <td><div class="ip-list">${ipHtml}</div></td>
+      <td>${extBadge}</td>
+      <td><span class="text-sm text-muted">${updated}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="openNetworkEdit('${escAttr(p.open_id)}')">编辑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let currentNetworkEditOpenId = null;
+
+async function openNetworkEdit(openId) {
+  currentNetworkEditOpenId = openId;
+  const res = await fetch(`/api/admin/network/profiles/${openId}`, { headers: authHeaders() });
+  if (!res.ok) return;
+  const p = await res.json();
+  document.getElementById('networkEditUserInfo').innerHTML =
+    `<strong>${escHtml(p.user_name || openId)}</strong>&nbsp;&nbsp;<span style="font-family:monospace;font-size:12px;">${escHtml(openId)}</span>`;
+  document.getElementById('networkEditIps').value = (p.allowed_ips || []).join('\n');
+  document.getElementById('networkEditExternal').checked = !!p.allow_external;
+  document.getElementById('networkEditModal').classList.add('active');
+}
+
+function closeNetworkEdit() {
+  document.getElementById('networkEditModal').classList.remove('active');
+  currentNetworkEditOpenId = null;
+}
+
+async function saveNetworkAcl() {
+  if (!currentNetworkEditOpenId) return;
+  const btn = document.getElementById('networkSaveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>保存中...';
+  const raw = document.getElementById('networkEditIps').value;
+  const ips = raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const external = document.getElementById('networkEditExternal').checked;
+  try {
+    const res = await fetch(`/api/admin/network/profiles/${currentNetworkEditOpenId}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ allowed_ips: ips, allow_external: external }),
+    });
+    if (res.ok) {
+      closeNetworkEdit();
+      showToast('规则保存成功');
+      loadNetworkACL();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast('保存失败: ' + (err.error || res.status), 'error');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '保存规则';
+  }
+}
+
+async function syncNetwork() {
+  const btn = document.getElementById('aclSyncBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>同步中...'; }
+  try {
+    const res = await fetch('/api/admin/network/sync', {
+      method: 'POST',
+      headers: authHeadersNoJson(),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showToast(`同步完成 — 新增 ${data.created ?? 0}，更新 ${data.updated ?? 0}，共 ${data.synced ?? 0} 条`, 'success');
+      loadNetworkACL();
+    } else {
+      showToast('同步失败: ' + (data.error || data.errors?.[0] || res.status), 'error');
+    }
+  } catch (e) {
+    showToast('同步失败: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 全量同步`; }
+  }
+}
+
+function downloadNetworkTemplate() {
+  const csv = 'open_id,allowed_ips,allow_external\nexample_id,"10.0.1.0/24;10.0.2.0/24",1\n';
+  downloadBlob(new Blob([csv], { type: 'text/csv' }), 'network-acl-template.csv');
+}
+
+async function handleNetworkImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const res = await fetch('/api/admin/network/import', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ csv: text }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.ok) {
+    showToast(`导入完成：成功 ${data.imported ?? 0} 条${data.errors?.length ? '，错误 ' + data.errors.length + ' 条' : ''}`);
+    loadNetworkACL();
+  } else {
+    showToast('导入失败: ' + (data.error || res.status), 'error');
+  }
+  e.target.value = '';
+}
+
+function exportNetworkCsv() {
+  fetch('/api/admin/network/export', { headers: authHeaders() })
+    .then(r => r.blob())
+    .then(b => downloadBlob(b, 'network-profiles.csv'))
+    .catch(e => showToast('导出失败: ' + e.message, 'error'));
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── System Config ─────────────────────────────────────────────────────────
+let systemConfigDefs = [];
+let systemConfigValues = {};
+
+async function loadSystemConfig() {
+  const form = document.getElementById('settingsForm');
+  form.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);"><span class="spinner"></span> 加载中...</div>';
+  try {
+    const res = await fetch('/api/admin/config');
+    if (!res.ok) { form.innerHTML = '<div style="padding:20px;color:var(--danger);">加载失败</div>'; return; }
+    const data = await res.json();
+    systemConfigDefs = data.definitions || [];
+    systemConfigValues = data.values || {};
+
+    form.innerHTML = systemConfigDefs.map(def => {
+      const val = systemConfigValues[def.key] ?? def.default;
+      const id = 'cfg-' + def.key;
+      let input = '';
+      if (def.type === 'boolean') {
+        const checked = val === 'true' ? 'checked' : '';
+        input = `<label class="toggle">
+          <input type="checkbox" id="${id}" data-key="${def.key}" data-type="boolean" ${checked}>
+          <span class="toggle-slider"></span>
+        </label>`;
+      } else if (def.type === 'number') {
+        input = `<input type="number" id="${id}" data-key="${def.key}" data-type="number"
+          value="${escAttr(val)}" min="${def.min ?? ''}" max="${def.max ?? ''}" step="${def.step ?? 1}"
+          class="form-input" style="width:140px;">`;
+      } else {
+        input = `<input type="text" id="${id}" data-key="${def.key}" data-type="text"
+          value="${escAttr(val)}" class="form-input" style="width:280px;">`;
+      }
+      return `<div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-label">${escHtml(def.label)} <span class="setting-label-zh">${escHtml(def.labelZh)}</span></div>
+          <div class="setting-desc">${escHtml(def.descriptionZh)}</div>
+        </div>
+        <div class="setting-control">
+          ${input}
+          ${def.unit ? `<span class="setting-unit">${escHtml(def.unit)}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    form.innerHTML = '<div style="padding:20px;color:var(--danger);">加载失败: ' + escHtml(String(e)) + '</div>';
+  }
+}
+
+async function saveSystemConfig() {
+  const btn = document.querySelector('#page-settings .btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>保存中...';
+  const updates = {};
+  for (const def of systemConfigDefs) {
+    const id = 'cfg-' + def.key;
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (def.type === 'boolean') {
+      updates[def.key] = el.checked ? 'true' : 'false';
+    } else {
+      updates[def.key] = el.value;
+    }
+  }
+  try {
+    const res = await fetch('/api/admin/config', {
+      method: 'PUT',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      btn.textContent = '✓ 已保存';
+      setTimeout(() => { btn.textContent = '保存全部'; btn.disabled = false; }, 2000);
+      // Reload to show new values
+      loadSystemConfig();
+    } else {
+      alert('保存失败: ' + (data.error || '未知错误'));
+      btn.textContent = '保存全部';
+      btn.disabled = false;
+    }
+  } catch (e) {
+    alert('保存失败: ' + String(e));
+    btn.textContent = '保存全部';
+    btn.disabled = false;
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  return String(s).replace(/'/g,"\\'").replace(/"/g, '');
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts * 1000);
+  return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') {
+    doLogin();
+  }
+});
+
+checkAuth();
+</script>
+</body>
+</html>

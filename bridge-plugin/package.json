@@ -1,0 +1,46 @@
+{
+  "name": "@neoway/feishu-bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ],
+    "channel": {
+      "id": "feishu-bridge",
+      "label": "Feishu Bridge",
+      "selectionLabel": "Feishu Bridge (Connector)",
+      "aliases": [
+        "neoway-feishu-bridge"
+      ]
+    },
+    "install": {
+      "npmSpec": "@neoway/feishu-bridge",
+      "localPath": "bridge-plugin",
+      "defaultChoice": "local"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@sinclair/typebox": "^0.32.0",
+    "@types/node": "^20.0.0",
+    "openclaw": "^2026.4.8",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "openclaw": ">=1.0.0"
+  },
+  "files": [
+    "dist",
+    "openclaw.plugin.json",
+    "skills"
+  ],
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  }
+}

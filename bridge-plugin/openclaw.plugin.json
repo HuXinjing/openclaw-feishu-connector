@@ -1,0 +1,23 @@
+{
+  "id": "neoway-feishu-bridge",
+  "channels": ["feishu-bridge"],
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "connectorBaseUrl": {
+        "type": "string",
+        "description": "Connector 服务器地址，例如 http://host.docker.internal:3000"
+      },
+      "connectorToken": {
+        "type": "string",
+        "description": "访问 Connector API 的鉴权 token"
+      },
+      "feishu_open_id": {
+        "type": "string",
+        "description": "当前用户飞书 open_id，由 Connector 注入，用于知识库搜索等需用户身份的场景"
+      }
+    }
+  }
+}

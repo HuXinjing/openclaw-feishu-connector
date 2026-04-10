@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, 'planC-improve']
+    paths:
+      - 'planC/**'
+      - '.github/workflows/planC-ci.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'planC/**'
+      - '.github/workflows/planC-ci.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  connector:
+    name: Connector
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: planC/connector
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version-file: package.json
+
+      - name: Install
+        run: bun install
+
+      - name: TypeScript check
+        run: bun tsc --noEmit
+
+      - name: Run tests
+        run: bun test
+
+      - name: Build
+        run: bun run build
+
+  bridge-plugin:
+    name: Bridge Plugin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: planC/bridge-plugin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: planC/bridge-plugin/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check docs exist
+        run: |
+          ls planC/docs/architecture.md planC/docs/operation.md
+
+  e2e-connector:
+    name: E2E Tests (Connector)
+    runs-on: ubuntu-latest
+    needs: connector
+    defaults:
+      run:
+        working-directory: planC/connector
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version-file: package.json
+
+      - name: Install
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Install Playwright
+        run: bunx playwright install --with-deps chromium
+
+      - name: Start connector
+        run: |
+          # Start connector in background with required env
+          ADMIN_USERNAME=admin ADMIN_PASSWORD=admin \
+          ADMIN_JWT_SECRET=test-secret-at-least-32-chars-long \
+          FEISHU_APP_ID=test-app-id \
+          FEISHU_APP_SECRET=test-secret \
+          GATEWAY_REGISTRY_URL=http://localhost:8080 \
+          bun run dist/index.js &
+          BUN_PID=$!
+          echo "BUN_PID=$BUN_PID" >> $GITHUB_ENV
+          # Wait for server to be ready
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "Connector is ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run E2E tests
+        run: bun run test:e2e
+        env:
+          CONNECTOR_URL: http://localhost:3000
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: admin
+
+      - name: Stop connector
+        if: always()
+        run: kill $BUN_PID 2>/dev/null || true
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: planC/connector
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version-file: package.json
+
+      - name: Install
+        run: bun install
+
+      - name: Audit dependencies
+        run: bun audit
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: planC/connector
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: |
+            planC-connector:${{ github.sha }}
+            planC-connector:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

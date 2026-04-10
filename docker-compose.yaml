@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  connector:
+    build:
+      context: ./connector
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - CONNECTOR_PORT=3000
+      - ADMIN_PORT=3001
+      - FEISHU_APP_ID=${FEISHU_APP_ID}
+      - FEISHU_APP_SECRET=${FEISHU_APP_SECRET}
+      - FEISHU_ENCRYPT_KEY=${FEISHU_ENCRYPT_KEY}
+      - FEISHU_VERIFICATION_TOKEN=${FEISHU_VERIFICATION_TOKEN}
+      # Connector 在容器内跑时，必须用 host.docker.internal 访问宿主机上的 Gateway 端口
+      - DOCKER_CONTAINER=1
+      - OPENCLAW_IMAGE=openclaw:local
+      - DATA_DIR=/data/users
+      - GATEWAY_BASE_PORT=18800
+      - HOOKS_TOKEN_SALT=${HOOKS_TOKEN_SALT}
+      - USER_MAP_DB=/data/connector/users.db
+      - POOL_SIZE=${POOL_SIZE:-2}
+      - AUTO_WARM_POOL=true
+      - SKILL_DIR=${SKILL_DIR}
+      - BRIDGE_PLUGIN_DIR=${BRIDGE_PLUGIN_DIR}
+      - BRIDGE_TOKEN=${BRIDGE_TOKEN}
+      - CONNECTOR_URL=${CONNECTOR_URL}
+      - CONNECTOR_PUBLIC_URL=${CONNECTOR_PUBLIC_URL:-}
+      - SKILL_DIR=${SKILL_DIR:-}
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    sysctls:
+      - net.ipv4.ip_forward=1
+
+  # 示例：用户 Gateway 容器 (仅用于演示，实际由 Connector 动态创建)
+  # gateway-user-001:
+  #   image: openclaw/openclaw:latest
+  #   environment:
+  #     # OPENCLAW_PROFILE is deprecated
+  #     # - OPENCLAW_PROFILE=user-ou_xxxxx
+  #     - OPENCLAW_HOOKS_ENABLED=true
+  #     - OPENCLAW_HOOKS_TOKEN=${USER_TOKEN}
+  #   volumes:
+  #     - ./data/users/ou_xxxxx/.openclaw:/home/appuser/.openclaw
+  #   ports:
+  #     - "18790:18789"
+  #   restart: unless-stopped
